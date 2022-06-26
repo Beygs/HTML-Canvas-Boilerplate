@@ -1,4 +1,9 @@
-import { distance, getRandomColor, randomIntFromRange, collision } from "./lib/utils";
+import {
+  distance,
+  getRandomColor,
+  randomIntFromRange,
+  collision,
+} from "./lib/utils";
 import "./style.css";
 
 /**
@@ -51,7 +56,7 @@ export class Particle {
   velocity: {
     x: number;
     y: number;
-  }
+  };
   mass: number;
   alpha: number;
 
@@ -109,17 +114,18 @@ export class Particle {
       if (particle === this) return;
 
       if (
-        distance(this.x, this.y, particle.x, particle.y) - (this.radius + particle.radius) <
+        distance(this.x, this.y, particle.x, particle.y) -
+          (this.radius + particle.radius) <
         0
       ) {
         collision(this, particle, 1);
       }
     });
 
-    if (distance(mouse.x, mouse.y, this.x, this.y) < 120 && this.alpha < 0.2) {
-      this.alpha += 0.02;
+    if (distance(mouse.x, mouse.y, this.x, this.y) < 50 && this.alpha < 0.3) {
+      this.alpha += 0.05;
     } else if (this.alpha > 0) {
-      this.alpha -= 0.02;
+      this.alpha -= 0.05;
 
       this.alpha = Math.max(0, this.alpha);
     }
@@ -137,16 +143,24 @@ let particles: Particle[];
 const init = () => {
   particles = [];
 
-  for (let i = 0; i < 400; i++) {
+  const maxRadius = 20;
+  const maxParticles =
+    (canvas.width * canvas.height) / (Math.PI * Math.pow(maxRadius, 2));
+
+  for (let i = 0; i < maxParticles; i++) {
     const mass = Math.random();
-    const radius = 20 * mass;
+    const radius = maxRadius * mass;
     let x = randomIntFromRange(radius, canvas.width - radius);
     let y = randomIntFromRange(radius, canvas.height - radius);
-    const color = getRandomColor();
-    
+    const color = getRandomColor(0.01);
+
     if (i !== 0) {
       for (let j = 0; j < particles.length; j++) {
-        if (distance(x, y, particles[j].x, particles[j].y) - (radius + particles[j].radius) < 0) {
+        if (
+          distance(x, y, particles[j].x, particles[j].y) -
+            (radius + particles[j].radius) <
+          0
+        ) {
           x = randomIntFromRange(radius, canvas.width - radius);
           y = randomIntFromRange(radius, canvas.height - radius);
 
@@ -161,7 +175,13 @@ const init = () => {
 
 const animate = () => {
   requestAnimationFrame(animate);
-  c.clearRect(0, 0, canvas.width, canvas.height);
+  // c.clearRect(0, 0, canvas.width, canvas.height);
+
+  c.font = `${canvas.width / 15}px serif`;
+  c.textAlign = "center";
+  c.strokeStyle = "rgba(0, 0 , 0, 0.02)"
+  c.strokeText("HTML Canvas Boilerplate", canvas.width / 2, canvas.height / 2);
+
   particles.forEach((object: Particle) => object.update(particles));
 };
 
