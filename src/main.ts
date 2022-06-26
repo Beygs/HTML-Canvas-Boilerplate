@@ -1,4 +1,4 @@
-import { getRandomColor } from "./lib/utils";
+import { distance, getRandomColor, randomIntFromRange, elasticCollision } from "./lib/utils";
 import "./style.css";
 
 /**
@@ -43,55 +43,86 @@ window.addEventListener("resize", () => {
  * Objects
  */
 
-class Circle {
+export class Particle {
   x: number;
   y: number;
   radius: number;
   color: string | CanvasGradient | CanvasPattern;
-  dx?: number;
-  dy?: number;
+  velocity: {
+    x: number;
+    y: number;
+  }
+  mass: number;
+  alpha: number;
 
   constructor(
     x: number,
     y: number,
     radius: number,
-    color: string | CanvasGradient | CanvasPattern,
-    dx: number | undefined,
-    dy: number | undefined
+    color: string | CanvasGradient | CanvasPattern
   ) {
     this.x = x;
     this.y = y;
     this.radius = radius;
     this.color = color;
-    this.dx = dx;
-    this.dy = dy;
+    this.velocity = {
+      x: (Math.random() - 0.5) * 5,
+      y: (Math.random() - 0.5) * 5,
+    };
+    this.mass = 1;
+    this.alpha = 0;
   }
 
   draw() {
     c.beginPath();
     c.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+    c.save();
+    c.globalAlpha = this.alpha;
     c.fillStyle = this.color;
     c.fill();
+    c.restore();
+    c.strokeStyle = this.color;
+    c.stroke();
     c.closePath();
   }
 
-  update() {
+  update(particles: Particle[]) {
     if (
-      canvas && this.dx &&
-      (this.x <= 0 + this.radius / 2 || this.x >= canvas.width - this.radius / 2)
+      canvas &&
+      (this.x <= 0 + this.radius || this.x >= canvas.width - this.radius)
     ) {
-      this.dx = -this.dx;
+      this.velocity.x = -this.velocity.x;
     }
 
     if (
-      canvas && this.dy &&
-      (this.y <= 0 + this.radius / 2 || this.y >= canvas.height - this.radius / 2)
+      canvas &&
+      (this.y <= 0 + this.radius || this.y >= canvas.height - this.radius)
     ) {
-      this.dy = -this.dy;
+      this.velocity.y = -this.velocity.y;
     }
 
-    this.x += this.dx ?? 0;
-    this.y += this.dy ?? 0;
+    this.x += this.velocity.x;
+    this.y += this.velocity.y;
+
+    particles.forEach((particle) => {
+      if (particle === this) return;
+
+      if (
+        distance(this.x, this.y, particle.x, particle.y) - this.radius * 2 <
+        0
+      ) {
+        elasticCollision(this, particle);
+      }
+    });
+
+    if (distance(mouse.x, mouse.y, this.x, this.y) < 120 && this.alpha < 0.2) {
+      this.alpha += 0.02;
+    } else if (this.alpha > 0) {
+      this.alpha -= 0.02;
+
+      this.alpha = Math.max(0, this.alpha);
+    }
+
     this.draw();
   }
 }
@@ -100,30 +131,36 @@ class Circle {
  * Implementation
  */
 
-let objects: Circle[];
+let particles: Particle[];
 
 const init = () => {
-  objects = [];
+  particles = [];
 
-  for (let i = 0; i < 400; i++) {
-    const radius = Math.random() * 30;
-    const x = (radius / 2) + (Math.random() * (canvas.width - radius));
-    const y = (radius / 2) + (Math.random() * (canvas.height - radius));
-    const color = getRandomColor(0.1);
-    const dx = Math.random() - 0.5;
-    const dy = Math.random() - 0.5;
+  for (let i = 0; i < 200; i++) {
+    const radius = 20;
+    let x = randomIntFromRange(radius, canvas.width - radius);
+    let y = randomIntFromRange(radius, canvas.height - radius);
+    const color = getRandomColor();
 
-    objects.push(new Circle(x, y, radius, color, dx, dy));
+    if (i !== 0) {
+      for (let j = 0; j < particles.length; j++) {
+        if (distance(x, y, particles[j].x, particles[j].y) - radius * 2 < 0) {
+          x = randomIntFromRange(radius, canvas.width - radius);
+          y = randomIntFromRange(radius, canvas.height - radius);
+
+          j = -1;
+        }
+      }
+    }
+
+    particles.push(new Particle(x, y, radius, color));
   }
 };
 
 const animate = () => {
   requestAnimationFrame(animate);
   c.clearRect(0, 0, canvas.width, canvas.height);
-  c.fillStyle = "black";
-  c.fillText("HTML CANVAS BOILERPLATE", mouse.x, mouse.y);
-
-  objects.forEach((object: Circle) => object.update());
+  particles.forEach((object: Particle) => object.update(particles));
 };
 
 init();
