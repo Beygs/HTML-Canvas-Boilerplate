@@ -32,9 +32,11 @@ document.addEventListener("mousemove", (e) => {
   mouse.y = e.clientY;
 });
 
-document.addEventListener("resize", () => {
+window.addEventListener("resize", () => {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
+
+  init();
 });
 
 /**
