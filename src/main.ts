@@ -1,4 +1,4 @@
-import { distance, getRandomColor, randomIntFromRange, elasticCollision } from "./lib/utils";
+import { distance, getRandomColor, randomIntFromRange, collision } from "./lib/utils";
 import "./style.css";
 
 /**
@@ -111,7 +111,7 @@ export class Particle {
         distance(this.x, this.y, particle.x, particle.y) - this.radius * 2 <
         0
       ) {
-        elasticCollision(this, particle);
+        collision(this, particle);
       }
     });
 
