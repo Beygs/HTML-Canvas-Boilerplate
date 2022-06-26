@@ -19,6 +19,8 @@ const c = canvas.getContext("2d") as CanvasRenderingContext2D;
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
+c.globalCompositeOperation = "overlay";
+
 /**
  * Variables
  */
@@ -65,7 +67,7 @@ export class Particle {
     y: number,
     radius: number,
     color: string | CanvasGradient | CanvasPattern,
-    mass: number
+    mass: number,
   ) {
     this.x = x;
     this.y = y;
@@ -122,7 +124,7 @@ export class Particle {
       }
     });
 
-    if (distance(mouse.x, mouse.y, this.x, this.y) < 50 && this.alpha < 0.3) {
+    if (distance(mouse.x, mouse.y, this.x, this.y) < 50 && 0.2) {
       this.alpha += 0.05;
     } else if (this.alpha > 0) {
       this.alpha -= 0.05;
@@ -150,9 +152,10 @@ const init = () => {
   for (let i = 0; i < maxParticles; i++) {
     const mass = Math.random();
     const radius = maxRadius * mass;
+    const alpha = (1 - mass) / 10;
     let x = randomIntFromRange(radius, canvas.width - radius);
     let y = randomIntFromRange(radius, canvas.height - radius);
-    const color = getRandomColor(0.01);
+    const color = getRandomColor(alpha);
 
     if (i !== 0) {
       for (let j = 0; j < particles.length; j++) {
@@ -179,8 +182,8 @@ const animate = () => {
 
   c.font = `${canvas.width / 15}px serif`;
   c.textAlign = "center";
-  c.strokeStyle = "rgba(0, 0 , 0, 0.02)"
-  c.strokeText("HTML Canvas Boilerplate", canvas.width / 2, canvas.height / 2);
+  c.fillStyle = "rgba(255, 255, 255, 0.05)";
+  c.fillText("HTML Canvas Boilerplate", canvas.width / 2, canvas.height / 2);
 
   particles.forEach((object: Particle) => object.update(particles));
 };
