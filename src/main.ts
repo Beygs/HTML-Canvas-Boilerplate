@@ -59,17 +59,18 @@ export class Particle {
     x: number,
     y: number,
     radius: number,
-    color: string | CanvasGradient | CanvasPattern
+    color: string | CanvasGradient | CanvasPattern,
+    mass: number
   ) {
     this.x = x;
     this.y = y;
-    this.radius = radius;
     this.color = color;
     this.velocity = {
       x: (Math.random() - 0.5) * 5,
       y: (Math.random() - 0.5) * 5,
     };
-    this.mass = 1;
+    this.mass = mass;
+    this.radius = radius;
     this.alpha = 0;
   }
 
@@ -108,10 +109,10 @@ export class Particle {
       if (particle === this) return;
 
       if (
-        distance(this.x, this.y, particle.x, particle.y) - this.radius * 2 <
+        distance(this.x, this.y, particle.x, particle.y) - (this.radius + particle.radius) <
         0
       ) {
-        collision(this, particle);
+        collision(this, particle, 1);
       }
     });
 
@@ -136,15 +137,16 @@ let particles: Particle[];
 const init = () => {
   particles = [];
 
-  for (let i = 0; i < 200; i++) {
-    const radius = 20;
+  for (let i = 0; i < 400; i++) {
+    const mass = Math.random();
+    const radius = 20 * mass;
     let x = randomIntFromRange(radius, canvas.width - radius);
     let y = randomIntFromRange(radius, canvas.height - radius);
     const color = getRandomColor();
-
+    
     if (i !== 0) {
       for (let j = 0; j < particles.length; j++) {
-        if (distance(x, y, particles[j].x, particles[j].y) - radius * 2 < 0) {
+        if (distance(x, y, particles[j].x, particles[j].y) - (radius + particles[j].radius) < 0) {
           x = randomIntFromRange(radius, canvas.width - radius);
           y = randomIntFromRange(radius, canvas.height - radius);
 
@@ -153,7 +155,7 @@ const init = () => {
       }
     }
 
-    particles.push(new Particle(x, y, radius, color));
+    particles.push(new Particle(x, y, radius, color, mass));
   }
 };
 
